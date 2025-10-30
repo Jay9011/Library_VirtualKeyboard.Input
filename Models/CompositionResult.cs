@@ -14,10 +14,16 @@ namespace VirtualKeyboard.Input.Models
         public bool Success { get; }
 
         /// <summary>
-        /// 조합된 문자 (확정되거나 조합 중인 문자)
+        /// 확정된 텍스트 (텍스트 버퍼에 삽입할 문자)
+        /// 이번 입력에서 확정된 문자만 포함 (이전 확정 내용 없음)
+        /// </summary>
+        public string CommittedText { get; }
+
+        /// <summary>
+        /// 조합 중인 텍스트 (밑줄 표시, 아직 확정 안됨)
         /// 예: 한글 "가", 일본어 "か"
         /// </summary>
-        public string ComposedText { get; }
+        public string ComposingText { get; }
 
         /// <summary>
         /// 조합 버퍼 (아직 확정되지 않은 입력, 주로 밑줄 표시)
@@ -50,7 +56,8 @@ namespace VirtualKeyboard.Input.Models
         /// </summary>
         private CompositionResult(
             bool success,
-            string composedText,
+            string committedText,
+            string composingText,
             string buffer,
             string errorMessage,
             ECompositionAction action,
@@ -58,7 +65,8 @@ namespace VirtualKeyboard.Input.Models
             int selectedCandidateIndex)
         {
             Success = success;
-            ComposedText = composedText ?? string.Empty;
+            CommittedText = committedText ?? string.Empty;
+            ComposingText = composingText ?? string.Empty;
             Buffer = buffer ?? string.Empty;
             ErrorMessage = errorMessage ?? string.Empty;
             Action = action;
@@ -69,8 +77,15 @@ namespace VirtualKeyboard.Input.Models
         /// <summary>
         /// 성공 결과 생성
         /// </summary>
+        /// <param name="composingText">조합 중인 텍스트</param>
+        /// <param name="committedText">확정된 텍스트 (이번 입력에서 확정된 것만)</param>
+        /// <param name="buffer">조합 버퍼</param>
+        /// <param name="action">작업 유형</param>
+        /// <param name="candidates">변환 후보 목록</param>
+        /// <param name="selectedCandidateIndex">선택된 후보 인덱스</param>
         public static CompositionResult Succeeded(
-            string composedText,
+            string composingText,
+            string committedText = "",
             string buffer = "",
             ECompositionAction action = ECompositionAction.Input,
             IReadOnlyList<string> candidates = null,
@@ -78,7 +93,8 @@ namespace VirtualKeyboard.Input.Models
         {
             return new CompositionResult(
                 success: true,
-                composedText: composedText,
+                committedText: committedText,
+                composingText: composingText,
                 buffer: buffer,
                 errorMessage: string.Empty,
                 action: action,
@@ -94,7 +110,8 @@ namespace VirtualKeyboard.Input.Models
         {
             return new CompositionResult(
                 success: false,
-                composedText: string.Empty,
+                committedText: string.Empty,
+                composingText: string.Empty,
                 buffer: string.Empty,
                 errorMessage: errorMessage,
                 action: ECompositionAction.None,
@@ -110,7 +127,8 @@ namespace VirtualKeyboard.Input.Models
         {
             return new CompositionResult(
                 success: true,
-                composedText: string.Empty,
+                committedText: string.Empty,
+                composingText: string.Empty,
                 buffer: string.Empty,
                 errorMessage: string.Empty,
                 action: ECompositionAction.None,
@@ -127,7 +145,8 @@ namespace VirtualKeyboard.Input.Models
         public bool Equals(CompositionResult other)
         {
             return Success == other.Success &&
-                   ComposedText == other.ComposedText &&
+                   CommittedText == other.CommittedText &&
+                   ComposingText == other.ComposingText &&
                    Buffer == other.Buffer &&
                    Action == other.Action &&
                    SelectedCandidateIndex == other.SelectedCandidateIndex &&
@@ -174,7 +193,8 @@ namespace VirtualKeyboard.Input.Models
             {
                 int hash = 17;
                 hash = hash * 31 + Success.GetHashCode();
-                hash = hash * 31 + (ComposedText?.GetHashCode() ?? 0);
+                hash = hash * 31 + (CommittedText?.GetHashCode() ?? 0);
+                hash = hash * 31 + (ComposingText?.GetHashCode() ?? 0);
                 hash = hash * 31 + (Buffer?.GetHashCode() ?? 0);
                 hash = hash * 31 + Action.GetHashCode();
                 hash = hash * 31 + SelectedCandidateIndex.GetHashCode();

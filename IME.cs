@@ -9,7 +9,6 @@ namespace VirtualKeyboard.Input
     /// </summary>
     public class IME
     {
-        private readonly IKeyMapper _keyMapper;
         private readonly IInputComposer _composer;
         private CompositionContext _context;
 
@@ -24,11 +23,6 @@ namespace VirtualKeyboard.Input
         public string ComposerName => _composer.Name;
 
         /// <summary>
-        /// 키 매퍼 이름
-        /// </summary>
-        public string KeyMapperName => _keyMapper.Name;
-
-        /// <summary>
         /// 조합기의 언어 코드
         /// </summary>
         public string Language => _composer.Language;
@@ -36,17 +30,18 @@ namespace VirtualKeyboard.Input
         /// <summary>
         /// IME 생성
         /// </summary>
-        public IME(IKeyMapper keyMapper, IInputComposer composer)
+        /// <param name="composer">입력 조합기</param>
+        public IME(IInputComposer composer)
         {
-            _keyMapper = keyMapper ?? throw new ArgumentNullException(nameof(keyMapper));
             _composer = composer ?? throw new ArgumentNullException(nameof(composer));
             _context = new CompositionContext(_composer.CreateState());
         }
 
         /// <summary>
-        /// 키 입력
+        /// 문자 입력
         /// </summary>
-        /// <param name="key">입력 문자 (예: 'a', 'A', 'r', 'R', '·', 'ㅡ' 등)</param>
+        /// <param name="key">입력 문자 (예: 'ㄱ', 'ㅏ', '·', 'ㅡ', 'あ', 'k', 'a' 등)</param>
+        /// <returns>조합 결과</returns>
         public CompositionResult Input(char key)
         {
             // 백스페이스는 항상 직접 처리
@@ -68,14 +63,14 @@ namespace VirtualKeyboard.Input
                 return ProcessSpecialKeyDefault(key);
             }
 
-            // 키 매핑
-            if (_keyMapper.TryMap(key, out string mapped))
+            // Composer가 처리 가능한 문자인지 확인
+            string input = key.ToString();
+            if (_composer.CanProcess(input))
             {
-                return ProcessMappedInput(mapped);
+                return ProcessInput(input);
             }
 
-            // 매핑되지 않은 문자는 NoChange 반환
-            _context.State.Reset();
+            // 처리할 수 없는 문자는 NoChange 반환
             return CompositionResult.NoChange();
         }
 
@@ -179,9 +174,9 @@ namespace VirtualKeyboard.Input
         }
 
         /// <summary>
-        /// 매핑된 입력 처리
+        /// 입력 처리
         /// </summary>
-        private CompositionResult ProcessMappedInput(string input)
+        private CompositionResult ProcessInput(string input)
         {
             var result = _composer.ProcessInput(_context, input);
 

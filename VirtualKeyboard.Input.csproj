@@ -23,4 +23,8 @@
     </None>
   </ItemGroup>
 
+	<Target Name="PushNuGetPackage" AfterTargets="Pack">
+		<Exec Command="dotnet nuget push $(PackageOutputPath)$(AssemblyName).$(Version).nupkg --source Local" />
+	</Target>
+
 </Project>

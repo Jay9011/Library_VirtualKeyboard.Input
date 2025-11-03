@@ -89,19 +89,11 @@ namespace VirtualKeyboard.Input
         }
 
         /// <summary>
-        /// 백스페이스
+        /// 백스페이스 (Composer에게 위임)
         /// </summary>
         public CompositionResult Backspace()
         {
-            var result = _composer.ProcessBackspace(_context);
-
-            if (result.Success)
-            {
-                return result;
-            }
-
-            // 조합 중이 아니면 NoChange 반환
-            return CompositionResult.NoChange();
+            return _composer.ProcessBackspace(_context);
         }
 
         /// <summary>
@@ -188,20 +180,11 @@ namespace VirtualKeyboard.Input
         }
 
         /// <summary>
-        /// 입력 처리
+        /// 입력 처리 (Composer에게 위임)
         /// </summary>
         private CompositionResult ProcessInput(string input)
         {
-            var result = _composer.ProcessInput(_context, input);
-
-            if (result.Success)
-            {
-                return result;
-            }
-
-            // 조합 실패 시 NoChange 반환
-            _context.State.Reset();
-            return CompositionResult.NoChange();
+            return _composer.ProcessInput(_context, input);
         }
 
         #endregion

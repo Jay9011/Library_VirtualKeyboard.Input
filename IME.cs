@@ -70,7 +70,21 @@ namespace VirtualKeyboard.Input
                 return ProcessInput(input);
             }
 
-            // 처리할 수 없는 문자는 NoChange 반환
+            // Composer가 처리할 수 없는 문자 처리
+            // 조합 중이면 현재 조합을 확정하고 새 문자를 함께 반환
+            if (IsComposing)
+            {
+                var commitResult = Commit();
+
+                // 조합된 텍스트 + 새 문자를 함께 반환
+                return CompositionResult.Succeeded(
+                    "",
+                    committedText: commitResult.CommittedText + key,
+                    action: ECompositionAction.Input
+                );
+            }
+
+            // 조합 중이 아니면 NoChange 반환 (상위 레이어가 처리)
             return CompositionResult.NoChange();
         }
 
